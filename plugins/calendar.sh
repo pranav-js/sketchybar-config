@@ -5,19 +5,15 @@ source "$CONFIG_DIR/colors.sh"
 
 # Get next calendar event
 get_next_event() {
-    # Get events for today and tomorrow
-    local today=$(date '+%Y-%m-%d')
-    local tomorrow=$(date -v+1d '+%Y-%m-%d')
-    
     # Use EventKit to get calendar events
     local event_info=$(osascript << 'EOF'
 tell application "Calendar"
     set currentDate to current date
-    set endDate to currentDate + (2 * days)
+    set endOfDay to currentDate + (1 * days)
     
     set allEvents to {}
     repeat with cal in calendars
-        set calEvents to (events of cal whose start date ≥ currentDate and start date ≤ endDate)
+        set calEvents to (events of cal whose start date ≥ currentDate and start date ≤ endOfDay)
         set allEvents to allEvents & calEvents
     end repeat
     
@@ -26,24 +22,50 @@ tell application "Calendar"
         set eventStart to start date of nextEvent
         set eventTitle to summary of nextEvent
         
-        # Find the earliest event
+        # Find the earliest upcoming event
         repeat with evt in allEvents
-            if start date of evt < eventStart then
+            if start date of evt < eventStart and start date of evt ≥ currentDate then
                 set nextEvent to evt
                 set eventStart to start date of evt
                 set eventTitle to summary of evt
             end if
         end repeat
         
-        # Format the time
-        set eventTime to time string of eventStart
+        # Format the time properly
+        set eventHour to hours of eventStart
+        set eventMinute to minutes of eventStart
+        
+        # Convert to 12-hour format
+        if eventHour = 0 then
+            set displayHour to 12
+            set ampm to "AM"
+        else if eventHour < 12 then
+            set displayHour to eventHour
+            set ampm to "AM"
+        else if eventHour = 12 then
+            set displayHour to 12
+            set ampm to "PM"
+        else
+            set displayHour to eventHour - 12
+            set ampm to "PM"
+        end if
+        
+        # Format minutes with leading zero if needed
+        if eventMinute < 10 then
+            set minuteStr to "0" & eventMinute
+        else
+            set minuteStr to eventMinute as string
+        end if
+        
+        set formattedTime to displayHour & ":" & minuteStr & " " & ampm
+        
         set eventDate to date string of eventStart
         set todayDate to date string of currentDate
         
         if eventDate = todayDate then
-            return "Today " & eventTime & "|" & eventTitle
+            return eventTitle & "|" & formattedTime
         else
-            return "Tomorrow " & eventTime & "|" & eventTitle
+            return eventTitle & "|Tomorrow " & formattedTime
         end if
     else
         return "No events"
@@ -65,15 +87,15 @@ if [[ "$EVENT_INFO" == "No events" ]] || [[ -z "$EVENT_INFO" ]]; then
     LABEL="No Events"
 else
     # Parse event information
-    IFS='|' read -r event_time event_title <<< "$EVENT_INFO"
+    IFS='|' read -r event_title event_time <<< "$EVENT_INFO"
     
-    # Set icon and color
-    if [[ "$event_time" == "Today"* ]]; then
-        ICON="󰃭"
-        COLOR=$ACCENT_PRIMARY
-    else
+    # Set icon and color based on time
+    if [[ "$event_time" == "Tomorrow"* ]]; then
         ICON="󰸗"
         COLOR=$ACCENT_QUATERNARY
+    else
+        ICON="󰃭"
+        COLOR=$ACCENT_PRIMARY
     fi
     
     # Truncate long event titles
@@ -81,8 +103,9 @@ else
         event_title="${event_title:0:15}..."
     fi
     
-    # Format with line break (time on first row, event on second)
-    LABEL="$event_time\n$event_title"
+    # Create multi-line label using actual newline
+    LABEL="$event_title
+$event_time"
 fi
 
 # Update the Calendar item
@@ -90,5 +113,5 @@ sketchybar --set "$NAME" icon="$ICON" \
                         icon.color="$COLOR" \
                         label="$LABEL" \
                         label.color=$WHITE \
-                        label.font="SF Pro:Medium:10.0" \
+                        label.font="SF Pro:Medium:12.0" \
                         label.max_chars=20

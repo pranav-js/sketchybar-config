@@ -9,7 +9,7 @@ source "$CONFIG_DIR/icons.sh"
 PLUGIN_DIR="$CONFIG_DIR/plugins"
 
 ##### Bar Appearance #####
-sketchybar --bar position=top height=38 \
+sketchybar --bar position=top height=42 \
                  color=$BAR_COLOR \
                  border_width=0 \
                  corner_radius=0 \
