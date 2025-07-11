@@ -146,7 +146,7 @@ sketchybar --add item calendar right \
                           script="$PLUGIN_DIR/calendar.sh" \
                           background.color=$BACKGROUND_1 \
                           background.drawing=on \
-                          background.height=25 \
+                          background.height=26 \
                           padding_left=4 \
                           padding_right=4
 
@@ -184,8 +184,8 @@ sketchybar --add item wifi right \
 # Bluetooth Status
 sketchybar --add item bluetooth right \
            --set bluetooth icon.font="SF Pro:Semibold:15.0" \
-                          icon.padding_left=8 \
-                          icon.padding_right=8 \
+                          icon.padding_left=9 \
+                          icon.padding_right=9 \
                           label.drawing=off \
                           update_freq=10 \
                           script="$PLUGIN_DIR/bluetooth.sh" \
