@@ -3,15 +3,50 @@
 # Source colors for consistent theming
 source "$CONFIG_DIR/colors.sh"
 
-# Get current workspace
-FOCUSED_WORKSPACE=$(aerospace list-workspaces --focused)
 WORKSPACE_ID="$1"
 
-# Check if any windows exist in this workspace
-WORKSPACE_WINDOWS=$(aerospace list-windows --workspace "$WORKSPACE_ID" 2>/dev/null | wc -l)
+# Get currently focused workspace
+FOCUSED_WORKSPACE=$(aerospace list-workspaces --focused)
 
-# Only show workspace if it's active OR has windows
-if [ "$WORKSPACE_ID" = "$FOCUSED_WORKSPACE" ] || [ "$WORKSPACE_WINDOWS" -gt 0 ]; then
+# Get workspaces for each monitor
+MONITOR_1_WORKSPACES=$(aerospace list-workspaces --monitor 1)
+MONITOR_2_WORKSPACES=$(aerospace list-workspaces --monitor 2)
+
+# Check if this workspace is on monitor 1 or 2
+ON_MONITOR_1=""
+ON_MONITOR_2=""
+
+for ws in $MONITOR_1_WORKSPACES; do
+    if [ "$ws" = "$WORKSPACE_ID" ]; then
+        ON_MONITOR_1="true"
+        break
+    fi
+done
+
+for ws in $MONITOR_2_WORKSPACES; do
+    if [ "$ws" = "$WORKSPACE_ID" ]; then
+        ON_MONITOR_2="true"
+        break
+    fi
+done
+
+# Show workspace if:
+# 1. It's the currently focused workspace (global focus)
+# 2. OR it's one of the "representative" workspaces from each monitor
+SHOULD_SHOW="false"
+
+if [ "$WORKSPACE_ID" = "$FOCUSED_WORKSPACE" ]; then
+    # Always show the currently focused workspace
+    SHOULD_SHOW="true"
+elif [ "$ON_MONITOR_1" = "true" ] && [ "$WORKSPACE_ID" = "1" ]; then
+    # Show workspace 1 as representative of monitor 1
+    SHOULD_SHOW="true"
+elif [ "$ON_MONITOR_2" = "true" ] && [ "$WORKSPACE_ID" = "4" ]; then
+    # Show workspace 4 as representative of monitor 2 (adjust this number as needed)
+    SHOULD_SHOW="true"
+fi
+
+if [ "$SHOULD_SHOW" = "true" ]; then
     # Show the workspace item
     sketchybar --set "$NAME" drawing=on
     
@@ -27,7 +62,7 @@ if [ "$WORKSPACE_ID" = "$FOCUSED_WORKSPACE" ] || [ "$WORKSPACE_WINDOWS" -gt 0 ];
                    icon.font="SF Pro:Semibold:14.0" \
                    label.color=$WHITE
     else
-        # Workspace with windows but not focused - subtle styling
+        # Workspace visible on other display but not focused - subtle styling
         sketchybar --set "$NAME" \
                    background.drawing=on \
                    background.color=$BACKGROUND_1 \
@@ -39,7 +74,7 @@ if [ "$WORKSPACE_ID" = "$FOCUSED_WORKSPACE" ] || [ "$WORKSPACE_WINDOWS" -gt 0 ];
                    label.color=$GREY
     fi
 else
-    # Hide empty workspace
+    # Hide workspace that's not active on any display
     sketchybar --set "$NAME" drawing=off
 fi
 

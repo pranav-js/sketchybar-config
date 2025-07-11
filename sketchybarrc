@@ -58,29 +58,51 @@ sketchybar --add item apple.logo left \
                            label.drawing=off \
                            click_script="$PLUGIN_DIR/apple.sh"
 
-# Aerospace Workspaces
+# Aerospace Display-Aware Workspaces
 sketchybar --add event aerospace_workspace_change
 
-for sid in $(aerospace list-workspaces --all); do
-    sketchybar --add item space.$sid left \
-               --subscribe space.$sid aerospace_workspace_change \
-               --set space.$sid \
-                     icon="$sid" \
-                     icon.font="SF Pro:Medium:14.0" \
-                     icon.padding_left=8 \
-                     icon.padding_right=8 \
-                     icon.width=32 \
-                     icon.align=center \
-                     label.drawing=off \
-                     background.color=$BACKGROUND_1 \
-                     background.corner_radius=6 \
-                     background.height=26 \
-                     background.drawing=off \
-                     padding_left=4 \
-                     padding_right=4 \
-                     click_script="aerospace workspace $sid" \
-                     script="$PLUGIN_DIR/aerospace.sh $sid"
-done
+# Monitor 1 Workspace Indicator (Primary - Built-in Display)
+sketchybar --add item monitor_1_workspace left \
+           --subscribe monitor_1_workspace aerospace_workspace_change \
+           --set monitor_1_workspace \
+                 icon="M1:4" \
+                 icon.font="SF Pro:Medium:12.0" \
+                 icon.color=$GREY \
+                 icon.padding_left=8 \
+                 icon.padding_right=8 \
+                 label.drawing=off \
+                 padding_left=4 \
+                 padding_right=4 \
+                 background.color=$BACKGROUND_1 \
+                 background.corner_radius=6 \
+                 background.height=26 \
+                 background.drawing=on \
+                 script="$PLUGIN_DIR/aerospace_display.sh"
+
+# Monitor 2 Workspace Indicator (External - MAG 274UPF E2)
+sketchybar --add item monitor_2_workspace left \
+           --subscribe monitor_2_workspace aerospace_workspace_change \
+           --set monitor_2_workspace \
+                 icon="M2:1" \
+                 icon.font="SF Pro:Medium:12.0" \
+                 icon.color=$GREY \
+                 icon.padding_left=8 \
+                 icon.padding_right=8 \
+                 label.drawing=off \
+                 padding_left=4 \
+                 padding_right=4 \
+                 background.color=$BACKGROUND_1 \
+                 background.corner_radius=6 \
+                 background.height=26 \
+                 background.drawing=on \
+                 script="$PLUGIN_DIR/aerospace_display.sh"
+
+# Monitor Connection Watcher (detects when monitors are connected/disconnected)
+sketchybar --add item monitor_watcher left \
+           --set monitor_watcher \
+                 drawing=off \
+                 update_freq=5 \
+                 script="$PLUGIN_DIR/monitor_watcher.sh"
 
 # Separator
 sketchybar --add item separator left \
@@ -179,7 +201,7 @@ sketchybar --add item clock right \
                        icon.color=$YELLOW \
                        icon.padding_left=8 \
                        icon.padding_right=6 \
-                       label.font="SF Pro:Medium:13.0" \
+                       label.font="SF Pro:Medium:12.0" \
                        label.color=$WHITE \
                        label.padding_left=4 \
                        label.padding_right=8 \
@@ -217,7 +239,7 @@ sketchybar --add item battery right \
                         icon.color=$ACCENT_SECONDARY \
                         icon.padding_left=8 \
                         icon.padding_right=6 \
-                        label.font="SF Pro:Medium:13.0" \
+                        label.font="SF Pro:Medium:12.0" \
                         label.color=$WHITE \
                         label.padding_left=4 \
                         label.padding_right=8 \

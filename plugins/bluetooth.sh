@@ -41,7 +41,7 @@ fi
 
 # Check specifically for AirPods connection
 if [[ "$BT_ENABLED" == true ]]; then
-    # Check for AirPods in connected devices
+    # Method 1: Check for AirPods in connected devices (SPBluetoothDataType)
     AIRPODS_CHECK=$(system_profiler SPBluetoothDataType 2>/dev/null | grep -i -A 10 -B 2 "airpods\|air pods")
     if [[ -n "$AIRPODS_CHECK" ]]; then
         # Check if AirPods are actually connected (not just paired)
@@ -51,7 +51,19 @@ if [[ "$BT_ENABLED" == true ]]; then
         fi
     fi
     
-    # Alternative check using blueutil if available
+    # Method 2: Check if AirPods are active audio device (more reliable)
+    if [[ "$AIRPODS_CONNECTED" == false ]]; then
+        AIRPODS_AUDIO_CHECK=$(system_profiler SPAudioDataType 2>/dev/null | grep -i -A 5 -B 5 "airpods")
+        if [[ -n "$AIRPODS_AUDIO_CHECK" ]]; then
+            # Check if AirPods are set as default output device
+            AIRPODS_DEFAULT_OUTPUT=$(echo "$AIRPODS_AUDIO_CHECK" | grep -i "default output device: yes")
+            if [[ -n "$AIRPODS_DEFAULT_OUTPUT" ]]; then
+                AIRPODS_CONNECTED=true
+            fi
+        fi
+    fi
+    
+    # Method 3: Alternative check using blueutil if available
     if [[ "$AIRPODS_CONNECTED" == false ]] && command -v blueutil &> /dev/null; then
         CONNECTED_DEVICES=$(blueutil --connected 2>/dev/null)
         if [[ "$CONNECTED_DEVICES" == *"AirPods"* ]] || [[ "$CONNECTED_DEVICES" == *"Air Pods"* ]]; then
@@ -64,7 +76,7 @@ fi
 if [[ "$AIRPODS_CONNECTED" == true ]]; then
     # AirPods connected - AirPods icon in white
     ICON="󰋋"
-    COLOR=$WHITE
+    COLOR=$ACCENT_PINK
 elif [[ "$BT_ENABLED" == true ]]; then
     # Bluetooth enabled but no AirPods - blue Bluetooth icon
     ICON="󰂯"
